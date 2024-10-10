@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.kinestex.kotlin_sdk"
+    namespace = "com.kinestex.kotlin_sdk_secure_api"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.kinestex.kotlin_sdk"
+        applicationId = "com.kinestex.kotlin_sdk_secure_api"
         minSdk = 28
         targetSdk = 34
         versionCode = 1

@@ -1,72 +1,54 @@
 package com.kinestex.kinestexsdkkotlin.secure_api.mapper
 
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.GenericTypeIndicator
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Category
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Day
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Level
+import com.google.firebase.firestore.DocumentSnapshot
+import com.kinestex.kinestexsdkkotlin.secure_api.models.DayInfo
+import com.kinestex.kinestexsdkkotlin.secure_api.models.En
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Plan
-import com.kinestex.kinestexsdkkotlin.secure_api.models.PlanInfo
+import com.kinestex.kinestexsdkkotlin.secure_api.models.WeekInfo
 
-
-/*
- * Created by shagi on 26.03.2024 01:36
- */
-
-class ConvertSnapshotToPlan {
-    fun toPlan(snapshot: DataSnapshot): Plan {
-        val imgURL = snapshot.child("img_URL").getValue(String::class.java)
-        val enSnapshot = snapshot.child("en")
-        val ruSnapshot = snapshot.child("ru")
-
-        val enPlanInfo = toPlanInfo(enSnapshot)
-        val ruPlanInfo = toPlanInfo(ruSnapshot)
-
-        return Plan(imgURL, enPlanInfo, ruPlanInfo)
+class ConvertDocumentToPlan {
+    fun toPlan(document: DocumentSnapshot): Plan {
+        return Plan(
+            id = document.id,
+            imgURL = document.getString("img_URL") ?: "",
+            en = extractLanguageInfo(document),
+            description = document.getString("description") ?: "",
+            categories = extractCategories(document),
+            weeks = extractWeeks(document)
+        )
     }
 
-    private fun toPlanInfo(snapshot: DataSnapshot): PlanInfo {
-        val bodyParts = snapshot.child("body_parts").getValue(String::class.java)
-        val categorySnapshot = snapshot.child("category")
-        val levelsSnapshot = snapshot.child("levels")
-        val titlePlan = snapshot.child("title").getValue(String::class.java)
-
-        val category = Category(
-            description = categorySnapshot.child("description").getValue(String::class.java),
-            levels = categorySnapshot.child("levels")
-                .getValue(object : GenericTypeIndicator<Map<String, Long>>() {})
+    private fun extractLanguageInfo(document: DocumentSnapshot): En {
+        val enMap = document.get("en") as? Map<String, Any> ?: mapOf()
+        return En(
+            title = enMap["title"] as? String ?: "",
+            body_parts = (enMap["body_parts"] as? List<String>) ?: listOf(),
+            description = enMap["description"] as? String ?: ""
         )
+    }
 
-        val levels = mutableListOf<Level>()
-        levelsSnapshot.children.forEach { levelSnapshot ->
+    private fun extractCategories(document: DocumentSnapshot): Map<String, Int> {
+        return (document.get("categories") as? Map<String, Long>)?.mapValues { it.value.toInt() } ?: mapOf()
+    }
 
-            val title = levelSnapshot.child("title").getValue(String::class.java)
-            val description = levelSnapshot.child("description").getValue(String::class.java)
-
-            val days = mutableListOf<Day>()
-            levelSnapshot.child("days").children.forEach { daySnapshot ->
-
-                val duration = daySnapshot.child("duration").getValue(Int::class.java)
-
-                val workouts: MutableList<String> = mutableListOf()
-                val workoutsSnapshot = daySnapshot.child("workouts")
-
-                workoutsSnapshot.children.forEach { workoutSnapshot ->
-                    val workout = workoutSnapshot.getValue(String::class.java)
-                    workout?.let {
-                        workouts.add(it)
-                    }
-                }
-
-                val dayDescription = daySnapshot.child("description").getValue(String::class.java)
-                val dayTitle = daySnapshot.child("title").getValue(String::class.java)
-
-                days.add(Day(duration, workouts, dayDescription, dayTitle))
-            }
-
-            levels.add(Level(title, description, days))
+    private fun extractWeeks(document: DocumentSnapshot): List<WeekInfo> {
+        val weeksList = document.get("weeks") as? List<Map<String, Any>> ?: listOf()
+        return weeksList.map { weekMap ->
+            WeekInfo(
+                title = weekMap["title"] as? String ?: "",
+                description = weekMap["description"] as? String ?: "",
+                days = extractDays(weekMap["days"] as? List<Map<String, Any>> ?: listOf())
+            )
         }
+    }
 
-        return PlanInfo(bodyParts, category, levels, titlePlan)
+    private fun extractDays(daysList: List<Map<String, Any>>): List<DayInfo> {
+        return daysList.map { dayMap ->
+            DayInfo(
+                title = dayMap["title"] as? String ?: "",
+                description = dayMap["description"] as? String ?: "",
+                workout = dayMap["workout"] as? String ?: ""
+            )
+        }
     }
 }

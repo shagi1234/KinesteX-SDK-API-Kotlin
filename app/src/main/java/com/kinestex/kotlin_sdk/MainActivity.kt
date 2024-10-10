@@ -26,7 +26,8 @@ import androidx.lifecycle.lifecycleScope
 import com.kinestex.kinestexsdkkotlin.KinesteXSDK
 import com.kinestex.kinestexsdkkotlin.models.PlanCategory
 import com.kinestex.kinestexsdkkotlin.models.WebViewMessage
-import com.kinestex.kotlin_sdk.databinding.ActivityMainBinding
+import com.kinestex.kotlin_sdk_secure_api.R
+import com.kinestex.kotlin_sdk_secure_api.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 
 

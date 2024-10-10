@@ -1,75 +1,39 @@
 package com.kinestex.kinestexsdkkotlin.secure_api.mapper
 
-import android.util.Log
-import com.google.firebase.database.DataSnapshot
+import com.google.firebase.firestore.DocumentSnapshot
+import com.kinestex.kinestexsdkkotlin.secure_api.models.En
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Exercise
-import com.kinestex.kinestexsdkkotlin.secure_api.models.ExerciseInfo
 
-/*
- * Created by shagi on 25.03.2024 02:29
- */
+class ConvertDocumentToExercise {
+    fun toExercise(document: DocumentSnapshot): Exercise {
+        return toExercise(document.data ?: mapOf())
+    }
 
-class ConvertSnapshotToExercise {
-
-    fun toExercise(snapshot: DataSnapshot): Exercise {
-        Log.e("TAG_exercise_snapshot", "toExercise: " + snapshot.value )
-        val ruDataSnapshot = snapshot.child("ru")
-        val enDataSnapshot = snapshot.child("en")
-        val correctSecond = snapshot.child("correct_second").getValue(Double::class.java) ?: 0.0
-        val calories = snapshot.child("calories").getValue(Double::class.java) ?: 0.0
-        val videoURL = snapshot.child("video_URL").getValue(String::class.java) ?: ""
-
-        val ruInfo = extractExerciseInfo(ruDataSnapshot)
-        val enInfo = extractExerciseInfo(enDataSnapshot)
-
+    fun toExercise(exerciseMap: Map<String, Any>): Exercise {
         return Exercise(
-            videoUrl = videoURL,
-            calories = calories,
-            correctSecond = correctSecond,
-            ru = ruInfo,
-            en = enInfo
+            id = exerciseMap["id"] as? String ?: "",
+            thumbnailURL = exerciseMap["thumbnail_URL"] as? String ?: "",
+            videoURL = exerciseMap["video_URL"] as? String ?: "",
+            avg_reps = (exerciseMap["avg_reps"] as? Long)?.toInt(),
+            avg_countdown = (exerciseMap["avg_countdown"] as? Long)?.toInt(),
+            rest_duration = (exerciseMap["rest_duration"] as? Long)?.toInt() ?: 0,
+            en = extractLanguageInfo(exerciseMap),
+            title = exerciseMap["title"] as? String ?: "",
+            body_parts = exerciseMap["body_parts"] as? List<String> ?: listOf(),
+            description = exerciseMap["description"] as? String ?: "",
+            dif_level = exerciseMap["dif_level"] as? String ?: "",
+            common_mistakes = exerciseMap["common_mistakes"] as? String ?: "",
+            steps = exerciseMap["steps"] as? List<String> ?: listOf(),
+            tips = exerciseMap["tips"] as? String ?: ""
         )
     }
 
-    private fun extractExerciseInfo(dataSnapshot: DataSnapshot): ExerciseInfo {
-        val repSpeechSnapshot = dataSnapshot.child("rep_speech")
-        val repSpeech = mutableMapOf<String, String>()
-        repSpeechSnapshot.children.forEach { child ->
-            repSpeech[child.key ?: ""] = child.getValue(String::class.java) ?: ""
-        }
-
-        val speechSecondSnapshot = dataSnapshot.child("speech_second")
-        val speechSecond = mutableMapOf<String, String>()
-        speechSecondSnapshot.children.forEach { child ->
-            speechSecond[child.key ?: ""] = child.getValue(String::class.java) ?: ""
-        }
-
-        val bodyPartsSnapshot = dataSnapshot.child("body_parts")
-        val bodyParts = mutableListOf<String>()
-        bodyPartsSnapshot.children.forEach { child ->
-            bodyParts.add(child.getValue(String::class.java) ?: "")
-        }
-
-        val stepsSnapshot = dataSnapshot.child("steps")
-        val steps = mutableListOf<String>()
-        stepsSnapshot.children.forEach { child ->
-            steps.add(child.getValue(String::class.java) ?: "")
-        }
-
-        return ExerciseInfo(
-            common_mistakes = dataSnapshot.child("common_mistakes").getValue(String::class.java)
-                ?: "",
-            rest_speech = dataSnapshot.child("rest_speech").getValue(String::class.java) ?: "",
-            rep_speech = repSpeech,
-            speech_second = speechSecond,
-            body_parts = bodyParts,
-            description = dataSnapshot.child("description").getValue(String::class.java) ?: "",
-            slow_down_phrases = dataSnapshot.child("slow_down_phrases").getValue(String::class.java)
-                ?: "",
-            title = dataSnapshot.child("title").getValue(String::class.java) ?: "",
-            steps = steps,
-            tips = dataSnapshot.child("tips").getValue(String::class.java) ?: ""
+    private fun extractLanguageInfo(exerciseMap: Map<String, Any>): En {
+        val enMap = exerciseMap["en"] as? Map<String, Any> ?: mapOf()
+        return En(
+            title = enMap["title"] as? String ?: "",
+            body_parts = (enMap["body_parts"] as? List<String>) ?: listOf(),
+            description = enMap["description"] as? String ?: ""
         )
     }
-
 }

@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     // ExoPlayer (Media3) dependencies
     implementation(libs.androidx.media3.exoplayer)
@@ -98,10 +99,13 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("com.google.firebase:firebase-auth")
 
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
     //Lifecycle
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 }
