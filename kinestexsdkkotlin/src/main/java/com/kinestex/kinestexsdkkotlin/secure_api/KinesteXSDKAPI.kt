@@ -1,5 +1,6 @@
 package com.kinestex.kinestexsdkkotlin.secure_api
 
+import com.google.firebase.firestore.FirebaseFirestore
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToExercise
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToPlan
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToWorkout
@@ -42,9 +43,12 @@ object KinesteXSDKAPI {
         val convertDocumentToPlan = ConvertDocumentToPlan()
         val convertDocumentToWorkout = ConvertDocumentToWorkout()
 
-        exercisesRepository = ExercisesRepository(convertDocumentToExercise = convertDocumentToExercise)
-        plansRepository = PlansRepository(convertDocumentToPlan = convertDocumentToPlan)
-        workoutsRepository = WorkoutsRepository(convertDocumentToWorkout = convertDocumentToWorkout)
+        val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+        exercisesRepository =
+            ExercisesRepository(convertDocumentToExercise = convertDocumentToExercise, db)
+        plansRepository = PlansRepository(convertDocumentToPlan = convertDocumentToPlan, db)
+        workoutsRepository =
+            WorkoutsRepository(convertDocumentToWorkout = convertDocumentToWorkout, db)
 
         isInitialized = true
     }

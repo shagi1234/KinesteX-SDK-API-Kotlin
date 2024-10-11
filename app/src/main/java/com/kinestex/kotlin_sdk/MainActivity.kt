@@ -26,6 +26,8 @@ import androidx.lifecycle.lifecycleScope
 import com.kinestex.kinestexsdkkotlin.KinesteXSDK
 import com.kinestex.kinestexsdkkotlin.models.PlanCategory
 import com.kinestex.kinestexsdkkotlin.models.WebViewMessage
+import com.kinestex.kinestexsdkkotlin.secure_api.KinesteXSDKAPI
+import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
 import com.kinestex.kotlin_sdk_secure_api.R
 import com.kinestex.kotlin_sdk_secure_api.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
@@ -62,6 +64,23 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[ContentViewModel::class.java]
 
         initUiListeners()
+
+        lifecycleScope.launch {
+            when (val result = KinesteXSDKAPI.getExerciseByTitle("Push-up")) {
+                is Resource.Success -> {
+                    Log.e("SecureApis", "getExerciseByTitle: ${result.data}")
+                }
+
+                is Resource.Loading -> {
+                    Log.e("SecureApis", "getExerciseByTitle: Loading ...")
+                }
+
+                is Resource.Failure -> {
+                    Log.e("SecureApis", "getExerciseByTitle: ${result.exception}")
+                }
+            }
+        }
+
 
         observe()
     }

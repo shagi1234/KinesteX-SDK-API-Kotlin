@@ -13,9 +13,10 @@ import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToPlan
 import kotlinx.coroutines.tasks.await
 
 class PlansRepository(
-    private val convertDocumentToPlan: ConvertDocumentToPlan
+    private val convertDocumentToPlan: ConvertDocumentToPlan,
+    db: FirebaseFirestore
 ) {
-    private val plansCollection = ReferenceKeys.db.collection(ReferenceKeys.PLANS_COLLECTION)
+    private val plansCollection = db.collection(ReferenceKeys.PLANS_COLLECTION)
 
     suspend fun getPlanByName(name: String, isEnglish: Boolean = true): Resource<Plan> {
         return try {

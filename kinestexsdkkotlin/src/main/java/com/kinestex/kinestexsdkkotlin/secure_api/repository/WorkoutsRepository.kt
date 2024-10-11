@@ -5,6 +5,7 @@ package com.kinestex.kinestexsdkkotlin.secure_api.repository
  * Created by shagi on 10.02.2024 01:30
 */
 
+import com.google.firebase.firestore.FirebaseFirestore
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Workout
@@ -12,9 +13,10 @@ import com.kinestex.kinestexsdkkotlin.secure_api.utils.ReferenceKeys
 import kotlinx.coroutines.tasks.await
 
 class WorkoutsRepository(
-    private val convertDocumentToWorkout: ConvertDocumentToWorkout
+    private val convertDocumentToWorkout: ConvertDocumentToWorkout,
+    db: FirebaseFirestore
 ) {
-    private val workoutsCollection = ReferenceKeys.db.collection(ReferenceKeys.WORKOUTS_COLLECTION)
+    private val workoutsCollection = db.collection(ReferenceKeys.WORKOUTS_COLLECTION)
 
     suspend fun getWorkoutByTitle(title: String): Resource<Workout> {
         return try {

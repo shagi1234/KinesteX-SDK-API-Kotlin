@@ -9,9 +9,10 @@ import kotlinx.coroutines.tasks.await
 
 
 class ExercisesRepository(
-    private val convertDocumentToExercise: ConvertDocumentToExercise
+    private val convertDocumentToExercise: ConvertDocumentToExercise,
+    db: FirebaseFirestore
 ) {
-    private val exercisesCollection = ReferenceKeys.db.collection(ReferenceKeys.EXERCISES_COLLECTION)
+    private val exercisesCollection = db.collection(ReferenceKeys.EXERCISES_COLLECTION)
 
     suspend fun getExerciseByName(name: String, isEnglish: Boolean = true): Resource<Exercise> {
         return try {
