@@ -1,11 +1,13 @@
 package com.kinestex.kinestexsdkkotlin.secure_api.mapper
 
+import android.util.Log
 import com.google.firebase.firestore.DocumentSnapshot
 import com.kinestex.kinestexsdkkotlin.secure_api.models.En
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Exercise
 
 class ConvertDocumentToExercise {
     fun toExercise(document: DocumentSnapshot): Exercise {
+        Log.e("ConvertDocumentToExercise", "toExercise: ${document.data}")
         return toExercise(document.data ?: mapOf())
     }
 

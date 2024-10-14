@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.FirebaseApp
 import com.kinestex.kinestexsdkkotlin.KinesteXSDK
 import com.kinestex.kinestexsdkkotlin.models.PlanCategory
 import com.kinestex.kinestexsdkkotlin.models.WebViewMessage
@@ -54,7 +55,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFullScreen()
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         initUiListeners()
 
         lifecycleScope.launch {
-            when (val result = KinesteXSDKAPI.getExerciseByTitle("Push-up")) {
+            when (val result = KinesteXSDKAPI.getExerciseById("01X9gxJV3lAw8m4iS9iJ")) {
                 is Resource.Success -> {
                     Log.e("SecureApis", "getExerciseByTitle: ${result.data}")
                 }

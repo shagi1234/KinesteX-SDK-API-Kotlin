@@ -1,5 +1,6 @@
 package com.kinestex.kinestexsdkkotlin.secure_api.repository
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToExercise
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Exercise
@@ -13,13 +14,14 @@ class ExercisesRepository(
     db: FirebaseFirestore
 ) {
     private val exercisesCollection = db.collection(ReferenceKeys.EXERCISES_COLLECTION)
+    private val exercisesCollectionUpd = db.collection(ReferenceKeys.EXERCISES_COLLECTION_UPD)
 
-    suspend fun getExerciseByName(name: String, isEnglish: Boolean = true): Resource<Exercise> {
+    suspend fun getExerciseByName(name: String): Resource<Exercise> {
         return try {
-            val field = if (isEnglish) "en.title" else "title"
-            val querySnapshot = exercisesCollection.whereEqualTo(field, name).get().await()
-            if (!querySnapshot.isEmpty) {
-                val exercise = convertDocumentToExercise.toExercise(querySnapshot.documents.first())
+            val documentSnapshot = exercisesCollection.document(name).get().await()
+
+            if (documentSnapshot.exists()) {
+                val exercise = convertDocumentToExercise.toExercise(documentSnapshot)
                 Resource.Success(data = exercise)
             } else {
                 Resource.Failure(exception = Exception("No exercise found with name: $name"))
@@ -31,12 +33,13 @@ class ExercisesRepository(
 
     suspend fun getExerciseById(id: String): Resource<Exercise> {
         return try {
-            val documentSnapshot = exercisesCollection.document(id).get().await()
+            val documentSnapshot = exercisesCollectionUpd.document(id).get().await()
+
             if (documentSnapshot.exists()) {
                 val exercise = convertDocumentToExercise.toExercise(documentSnapshot)
                 Resource.Success(data = exercise)
             } else {
-                Resource.Failure(exception = Exception("No exercise found with ID: $id"))
+                Resource.Failure(exception = Exception("No exercise found with name: $id"))
             }
         } catch (e: Exception) {
             Resource.Failure(exception = e)
