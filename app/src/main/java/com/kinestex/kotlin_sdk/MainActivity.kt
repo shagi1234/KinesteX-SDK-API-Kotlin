@@ -66,17 +66,17 @@ class MainActivity : AppCompatActivity() {
         initUiListeners()
 
         lifecycleScope.launch {
-            when (val result = KinesteXSDKAPI.getExerciseById("01X9gxJV3lAw8m4iS9iJ")) {
+            when (val result = KinesteXSDKAPI.getWorkoutById("2H9UMoE94J7g1cJONsIq")) {
                 is Resource.Success -> {
-                    Log.e("SecureApis", "getExerciseByTitle: ${result.data}")
+                    Log.e("SecureApis", "getWorkoutById: ${result.data}")
                 }
 
                 is Resource.Loading -> {
-                    Log.e("SecureApis", "getExerciseByTitle: Loading ...")
+                    Log.e("SecureApis", "getWorkoutByTitle: Loading ...")
                 }
 
                 is Resource.Failure -> {
-                    Log.e("SecureApis", "getExerciseByTitle: ${result.exception}")
+                    Log.e("SecureApis", "getWorkoutByTitle: ${result.exception}")
                 }
             }
         }

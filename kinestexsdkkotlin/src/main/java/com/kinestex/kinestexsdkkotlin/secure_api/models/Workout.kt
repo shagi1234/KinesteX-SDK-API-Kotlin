@@ -6,13 +6,20 @@ data class Workout(
     val category: String,
     val total_minutes: Int,
     val total_calories: Int,
-    val sequence: List<Exercise>,
+    val sequence: List<WorkoutExercise>,
     val en: En,
     val title: String,
     val description: String,
     val body_parts: List<String>,
     val dif_level: String
 )
+
+data class WorkoutExercise(
+    val title: String,
+    val countdown: Int?,
+    val repeats: Int?
+)
+
 data class En(
     val title: String,
     val body_parts: List<String>,

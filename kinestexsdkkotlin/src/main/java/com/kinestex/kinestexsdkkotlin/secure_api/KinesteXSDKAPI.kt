@@ -81,9 +81,9 @@ object KinesteXSDKAPI {
     }
 
     // Plan-related functions
-    suspend fun getPlanByTitle(name: String, isEnglish: Boolean = true): Resource<Plan> {
+    suspend fun getPlanByTitle(name: String): Resource<Plan> {
         checkInitialization()
-        return plansRepository.getPlanByName(name, isEnglish)
+        return plansRepository.getPlanByName(name)
     }
 
     suspend fun getPlanById(id: String): Resource<Plan> {

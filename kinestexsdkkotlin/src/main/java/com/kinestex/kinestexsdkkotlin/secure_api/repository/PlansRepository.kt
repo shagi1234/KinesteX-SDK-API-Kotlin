@@ -18,12 +18,11 @@ class PlansRepository(
 ) {
     private val plansCollection = db.collection(ReferenceKeys.PLANS_COLLECTION)
 
-    suspend fun getPlanByName(name: String, isEnglish: Boolean = true): Resource<Plan> {
+    suspend fun getPlanByName(name: String): Resource<Plan> {
         return try {
-            val field = if (isEnglish) "en.title" else "title"
-            val querySnapshot = plansCollection.whereEqualTo(field, name).get().await()
-            if (!querySnapshot.isEmpty) {
-                val plan = convertDocumentToPlan.toPlan(querySnapshot.documents.first())
+            val querySnapshot = plansCollection.document(name).get().await()
+            if (querySnapshot.exists()) {
+                val plan = convertDocumentToPlan.toPlan(querySnapshot)
                 Resource.Success(data = plan)
             } else {
                 Resource.Failure(exception = Exception("No plan found with name: $name"))

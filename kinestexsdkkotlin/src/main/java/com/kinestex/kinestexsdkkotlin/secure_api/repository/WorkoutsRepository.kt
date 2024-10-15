@@ -5,7 +5,9 @@ package com.kinestex.kinestexsdkkotlin.secure_api.repository
  * Created by shagi on 10.02.2024 01:30
 */
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Workout
@@ -17,12 +19,13 @@ class WorkoutsRepository(
     db: FirebaseFirestore
 ) {
     private val workoutsCollection = db.collection(ReferenceKeys.WORKOUTS_COLLECTION)
+    private val workoutsCollectionUpd = db.collection(ReferenceKeys.WORKOUTS_COLLECTION_UPD)
 
     suspend fun getWorkoutByTitle(title: String): Resource<Workout> {
         return try {
-            val querySnapshot = workoutsCollection.whereEqualTo("title", title).get().await()
-            if (!querySnapshot.isEmpty) {
-                val workout = convertDocumentToWorkout.toWorkout(querySnapshot.documents.first())
+            val querySnapshot = workoutsCollection.document(title).get().await()
+            if (querySnapshot.exists()) {
+                val workout = convertDocumentToWorkout.toWorkout(querySnapshot)
                 Resource.Success(data = workout)
             } else {
                 Resource.Failure(exception = Exception("No workout found with title: $title"))
@@ -34,8 +37,9 @@ class WorkoutsRepository(
 
     suspend fun getWorkoutByID(id: String): Resource<Workout> {
         return try {
-            val documentSnapshot = workoutsCollection.document(id).get().await()
+            val documentSnapshot = workoutsCollectionUpd.document(id).collection("translations").document("en").get().await()
             if (documentSnapshot.exists()) {
+                Log.e("getWorkoutByID", "English translation data: ${Gson().toJson(documentSnapshot.data)}")
                 val workout = convertDocumentToWorkout.toWorkout(documentSnapshot)
                 Resource.Success(data = workout)
             } else {
