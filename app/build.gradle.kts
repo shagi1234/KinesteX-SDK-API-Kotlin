@@ -50,7 +50,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:29.1.0"))
+    implementation ("com.google.firebase:firebase-bom:32.5.0")
+    implementation ("com.google.android.gms:play-services-base:18.2.0")
     implementation("com.firebaseui:firebase-ui-database:8.0.0")
     implementation("com.google.firebase:firebase-database:20.3.0")
     implementation("com.google.firebase:firebase-storage:20.3.0")
@@ -58,6 +59,8 @@ dependencies {
 
     // Firestore
     implementation("com.google.firebase:firebase-firestore-ktx")
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation("androidx.activity:activity-ktx:1.9.0")

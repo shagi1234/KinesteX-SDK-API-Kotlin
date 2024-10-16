@@ -9,11 +9,10 @@ import com.kinestex.kinestexsdkkotlin.secure_api.utils.ReferenceKeys
  */
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToPlan
+import com.kinestex.kinestexsdkkotlin.secure_api.mapper.toPlan
 import kotlinx.coroutines.tasks.await
 
 class PlansRepository(
-    private val convertDocumentToPlan: ConvertDocumentToPlan,
     db: FirebaseFirestore
 ) {
     private val plansCollection = db.collection(ReferenceKeys.PLANS_COLLECTION)
@@ -22,8 +21,7 @@ class PlansRepository(
         return try {
             val querySnapshot = plansCollection.document(name).get().await()
             if (querySnapshot.exists()) {
-                val plan = convertDocumentToPlan.toPlan(querySnapshot)
-                Resource.Success(data = plan)
+                Resource.Success(data = querySnapshot.toPlan())
             } else {
                 Resource.Failure(exception = Exception("No plan found with name: $name"))
             }
@@ -36,8 +34,7 @@ class PlansRepository(
         return try {
             val documentSnapshot = plansCollection.document(id).get().await()
             if (documentSnapshot.exists()) {
-                val plan = convertDocumentToPlan.toPlan(documentSnapshot)
-                Resource.Success(data = plan)
+                Resource.Success(data = documentSnapshot.toPlan())
             } else {
                 Resource.Failure(exception = Exception("No plan found with ID: $id"))
             }
@@ -49,14 +46,13 @@ class PlansRepository(
     suspend fun getPlansByCategory(category: String): Resource<List<Plan>> {
         return try {
             val querySnapshot = plansCollection.get().await()
-            val plans = querySnapshot.documents.mapNotNull { document ->
-                val plan = convertDocumentToPlan.toPlan(document)
-                plan.takeIf { it.categories.containsKey(category) }
-            }.sortedByDescending { it.categories[category] }
+            val plans = querySnapshot.documents.mapNotNull { it.toPlan() }
+                .filter { it.en.categories.containsKey(category) }
+                .sortedByDescending { it.en.categories[category] }
 
             if (plans.isNotEmpty()) {
-                val highestLevel = plans.first().categories[category]
-                val highestLevelPlans = plans.filter { it.categories[category] == highestLevel }
+                val highestLevel = plans.first().en.categories[category]
+                val highestLevelPlans = plans.filter { it.en.categories[category] == highestLevel }
                 Resource.Success(data = highestLevelPlans)
             } else {
                 Resource.Failure(exception = Exception("No plans found with category: $category"))

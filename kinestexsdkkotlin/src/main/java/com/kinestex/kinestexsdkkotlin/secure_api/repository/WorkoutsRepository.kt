@@ -7,15 +7,13 @@ package com.kinestex.kinestexsdkkotlin.secure_api.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
-import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToWorkout
+import com.kinestex.kinestexsdkkotlin.secure_api.mapper.toWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Workout
 import com.kinestex.kinestexsdkkotlin.secure_api.utils.ReferenceKeys
 import kotlinx.coroutines.tasks.await
 
 class WorkoutsRepository(
-    private val convertDocumentToWorkout: ConvertDocumentToWorkout,
     db: FirebaseFirestore
 ) {
     private val workoutsCollection = db.collection(ReferenceKeys.WORKOUTS_COLLECTION)
@@ -25,8 +23,7 @@ class WorkoutsRepository(
         return try {
             val querySnapshot = workoutsCollection.document(title).get().await()
             if (querySnapshot.exists()) {
-                val workout = convertDocumentToWorkout.toWorkout(querySnapshot)
-                Resource.Success(data = workout)
+                Resource.Success(data = querySnapshot.toWorkout())
             } else {
                 Resource.Failure(exception = Exception("No workout found with title: $title"))
             }
@@ -37,11 +34,11 @@ class WorkoutsRepository(
 
     suspend fun getWorkoutByID(id: String): Resource<Workout> {
         return try {
-            val documentSnapshot = workoutsCollectionUpd.document(id).collection("translations").document("en").get().await()
+            val documentSnapshot =
+                workoutsCollectionUpd.document(id).collection("translations").document("en").get()
+                    .await()
             if (documentSnapshot.exists()) {
-                Log.e("getWorkoutByID", "English translation data: ${Gson().toJson(documentSnapshot.data)}")
-                val workout = convertDocumentToWorkout.toWorkout(documentSnapshot)
-                Resource.Success(data = workout)
+                Resource.Success(data = documentSnapshot.toWorkout())
             } else {
                 Resource.Failure(exception = Exception("No workout found with ID: $id"))
             }
@@ -51,24 +48,25 @@ class WorkoutsRepository(
     }
 
     suspend fun getWorkoutsByCategory(category: String): Resource<List<Workout>> {
-        if (!isValidCategory(category)) {
-            return Resource.Failure(
-                exception = IllegalArgumentException(
-                    "Invalid category. Must be one of: Stretching, Cardio, Yoga, Strength, Mobility"
-                )
-            )
-        }
-
         return try {
-            val querySnapshot = workoutsCollection.whereEqualTo("category", category).get().await()
-            val workouts = querySnapshot.documents.map { convertDocumentToWorkout.toWorkout(it) }
-            Resource.Success(data = workouts)
+            val querySnapshot =
+                workoutsCollectionUpd.whereEqualTo("category", category).get().await()
+
+            if (querySnapshot.isEmpty) {
+                return Resource.Success(data = emptyList())
+            }
+
+            var listOfWorkouts = mutableListOf<Workout>()
+
+            val workout = querySnapshot.documents.first().toWorkout()
+
+            workout?.let { listOfWorkouts.add(it) }
+
+            Log.e("Ejen sikeyn", "getWorkoutsByCategory: ${listOfWorkouts.size}")
+            Resource.Success(data = listOfWorkouts)
+
         } catch (e: Exception) {
             Resource.Failure(exception = e)
         }
-    }
-
-    private fun isValidCategory(category: String): Boolean {
-        return category in setOf("Stretching", "Cardio", "Yoga", "Strength", "Mobility")
     }
 }

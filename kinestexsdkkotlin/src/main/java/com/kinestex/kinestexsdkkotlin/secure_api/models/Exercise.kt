@@ -8,7 +8,10 @@ data class Exercise(
     val avg_reps: Int?,
     val avg_countdown: Int?,
     val rest_duration: Int,
-    val en: En,
+    val en: TranslationsExercise,
+)
+
+data class TranslationsExercise(
     val title: String,
     val body_parts: List<String>,
     val description: String,

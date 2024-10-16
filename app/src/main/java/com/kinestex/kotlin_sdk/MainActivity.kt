@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.FirebaseApp
+import com.google.gson.GsonBuilder
 import com.kinestex.kinestexsdkkotlin.KinesteXSDK
 import com.kinestex.kinestexsdkkotlin.models.PlanCategory
 import com.kinestex.kinestexsdkkotlin.models.WebViewMessage
@@ -66,21 +67,23 @@ class MainActivity : AppCompatActivity() {
         initUiListeners()
 
         lifecycleScope.launch {
-            when (val result = KinesteXSDKAPI.getWorkoutById("2H9UMoE94J7g1cJONsIq")) {
+            when (val result = KinesteXSDKAPI.getWorkoutsByCategory("Rehabilitation")) {
                 is Resource.Success -> {
-                    Log.e("SecureApis", "getWorkoutById: ${result.data}")
+                    val gson = GsonBuilder().setPrettyPrinting().create()
+                    val prettyJson = gson.toJson(result.data)
+
+                    Log.e("SecureApis", "getPlansByCategory: $prettyJson")
                 }
 
                 is Resource.Loading -> {
-                    Log.e("SecureApis", "getWorkoutByTitle: Loading ...")
+                    Log.e("SecureApis", "getPlansByCategory: Loading ...")
                 }
 
                 is Resource.Failure -> {
-                    Log.e("SecureApis", "getWorkoutByTitle: ${result.exception}")
+                    Log.e("SecureApis", "getPlansByCategory: ${result.exception}")
                 }
             }
         }
-
 
         observe()
     }

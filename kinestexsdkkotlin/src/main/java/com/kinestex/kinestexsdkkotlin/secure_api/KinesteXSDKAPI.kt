@@ -3,9 +3,6 @@ package com.kinestex.kinestexsdkkotlin.secure_api
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToExercise
-import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToPlan
-import com.kinestex.kinestexsdkkotlin.secure_api.mapper.ConvertDocumentToWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.repository.ExercisesRepository
 import com.kinestex.kinestexsdkkotlin.secure_api.repository.PlansRepository
 import com.kinestex.kinestexsdkkotlin.secure_api.repository.WorkoutsRepository
@@ -42,23 +39,16 @@ object KinesteXSDKAPI {
 
     fun createAndInitialize(context: android.content.Context) {
         if (!isInitialized) {
-            Log.e("KinesteXSDKAPI", "createAndInitialize")
 
-            // Ensure Firebase is initialized
             if (FirebaseApp.getApps(context).isEmpty()) {
                 FirebaseApp.initializeApp(context)
             }
 
-            val convertDocumentToExercise = ConvertDocumentToExercise()
-            val convertDocumentToPlan = ConvertDocumentToPlan()
-            val convertDocumentToWorkout = ConvertDocumentToWorkout()
-
-            // Use FirebaseFirestore.getInstance() after ensuring Firebase is initialized
             val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-            exercisesRepository = ExercisesRepository(convertDocumentToExercise = convertDocumentToExercise, db)
-            plansRepository = PlansRepository(convertDocumentToPlan = convertDocumentToPlan, db)
-            workoutsRepository = WorkoutsRepository(convertDocumentToWorkout = convertDocumentToWorkout, db)
+            exercisesRepository = ExercisesRepository(db)
+            plansRepository = PlansRepository(db)
+            workoutsRepository = WorkoutsRepository(db)
             isInitialized = true
         }
     }
