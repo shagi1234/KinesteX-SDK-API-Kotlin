@@ -48,7 +48,7 @@ fun DocumentSnapshot.toWorkout(): Workout? {
                     ) as? List<String>
                     ?: emptyList(),
                 description = ((get("en") as? Map<String, Any>)?.get("description") as? String)
-                    ?: ((get("filter_fields") as?dd Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
                         "description"
                     ) as? String
                     ?: "",
