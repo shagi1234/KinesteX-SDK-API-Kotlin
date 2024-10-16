@@ -14,7 +14,8 @@ data class WorkoutExercise(
     val title: String?,
     val id: String?,
     val countdown: Int?,
-    val repeats: Int?
+    val repeats: Int?,
+    val videoURL: String?
 )
 
 data class TranslationsWorkout(

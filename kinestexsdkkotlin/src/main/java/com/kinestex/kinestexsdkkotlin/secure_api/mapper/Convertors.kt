@@ -20,30 +20,43 @@ fun DocumentSnapshot.toWorkout(): Workout? {
         val prettyJson = gson.toJson(data)
         Log.d("DocumentSnapshot.toWorkout", "JSON data: $prettyJson")
 
-        val enData = get("en") as? Map<String, Any> ?: mapOf()
-
         Workout(
             id = id,
-            imgURL = getString("body_img") ?: "",
+            imgURL = getString("body_img") ?: getString("imgURL") ?: "",
             category = getString("category") ?: "",
             total_minutes = getLong("total_minutes")?.toInt() ?: 0,
-            total_calories = getLong("calories")?.toInt() ?: 0,
-            sequence = (get("sequence") as? Map<String, Any>)?.map { (_, value) ->
-                val exercise = value as? Map<String, Any> ?: mapOf()
+            total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt()
+            ?: 0,
+            sequence = (get("sequence") as? List<Map<String, Any>>)?.map { exercise ->
                 WorkoutExercise(
                     title = exercise["title"] as? String ?: "",
                     id = exercise["id"] as? String ?: "",
                     countdown = (exercise["countdown"] as? Long)?.toInt(),
-                    repeats = (exercise["repeats"] as? Long)?.toInt()
+                    repeats = (exercise["repeats"] as? Long)?.toInt(),
+                    videoURL = exercise["video_URL"] as? String
                 )
-            }?.toList() ?: listOf(),
+            } ?: listOf(),
             en = TranslationsWorkout(
-                title = enData["title"] as? String ?: "",
-                body_parts = enData["body_parts_array"] as? List<String>
-                    ?: (enData["body_parts"] as? String)?.split(", ")
-                    ?: listOf(),
-                description = enData["description"] as? String ?: "",
-                dif_level = enData["dif_level"] as? String ?: ""
+                title = (get("en") as? Map<String, Any>)?.get("title") as? String
+                    ?: getString("title") ?: "",
+                body_parts = ((get("en") as? Map<String, Any>)?.get("body_parts_array") as? List<String>)
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                        "body_parts_array"
+                    ) as? List<String>
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                        "body_parts"
+                    ) as? List<String>
+                    ?: emptyList(),
+                description = ((get("en") as? Map<String, Any>)?.get("description") as? String)
+                    ?: ((get("filter_fields") as?dd Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                        "description"
+                    ) as? String
+                    ?: "",
+                dif_level = ((get("en") as? Map<String, Any>)?.get("dif_level") as? String)
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                        "dif_level"
+                    ) as? String
+                    ?: ""
             )
         )
     } catch (e: Exception) {
@@ -119,3 +132,4 @@ fun DocumentSnapshot.toPlan(): Plan? {
         null
     }
 }
+
