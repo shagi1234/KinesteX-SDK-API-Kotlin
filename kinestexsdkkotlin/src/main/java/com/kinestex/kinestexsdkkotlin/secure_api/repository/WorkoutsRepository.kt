@@ -56,15 +56,11 @@ class WorkoutsRepository(
                 return Resource.Success(data = emptyList())
             }
 
-            var listOfWorkouts = mutableListOf<Workout>()
+            val workouts = querySnapshot.documents.mapNotNull { document ->
+                document.toWorkout()
+            }
 
-            val workout = querySnapshot.documents.first().toWorkout()
-
-            workout?.let { listOfWorkouts.add(it) }
-
-            Log.e("Ejen sikeyn", "getWorkoutsByCategory: ${listOfWorkouts.size}")
-            Resource.Success(data = listOfWorkouts)
-
+            Resource.Success(data = workouts)
         } catch (e: Exception) {
             Resource.Failure(exception = e)
         }
