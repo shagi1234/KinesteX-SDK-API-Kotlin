@@ -20,8 +20,7 @@ fun DocumentSnapshot.toWorkout(): Workout? {
         val prettyJson = gson.toJson(data)
         Log.d("DocumentSnapshot.toWorkout", "JSON data: $prettyJson")
 
-        Workout(
-            id = id,
+        Workout(id = id,
             imgURL = getString("body_img") ?: getString("imgURL") ?: "",
             category = getString("category") ?: "",
             total_minutes = getLong("total_minutes")?.toInt() ?: 0,
@@ -46,19 +45,20 @@ fun DocumentSnapshot.toWorkout(): Workout? {
                     ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
                         "body_parts"
                     ) as? List<String>
-                    ?: emptyList(),
+                    ?: (((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                        "body_parts"
+                    ) as? String)?.split(",") ?: ((get("en") as? Map<String, Any>)?.get(
+                        "body_parts"
+                    ) as? String)?.split(",") ?: emptyList(),
                 description = ((get("en") as? Map<String, Any>)?.get("description") as? String)
                     ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
                         "description"
-                    ) as? String
-                    ?: "",
+                    ) as? String ?: "",
                 dif_level = ((get("en") as? Map<String, Any>)?.get("dif_level") as? String)
                     ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
                         "dif_level"
-                    ) as? String
-                    ?: ""
-            )
-        )
+                    ) as? String ?: ""
+            ))
     } catch (e: Exception) {
         Log.e("WorkoutsRepository", "Error converting document to Workout", e)
         null
@@ -102,8 +102,7 @@ fun DocumentSnapshot.toPlan(): Plan? {
             id = id,
             imgURL = getString("img_URL") ?: "",
             description = categoryData["description"] as? String ?: "",
-            en = TranslationsPlan(
-                title = enData["title"] as? String ?: "",
+            en = TranslationsPlan(title = enData["title"] as? String ?: "",
                 description = categoryData["description"] as? String ?: "",
                 body_parts = (enData["body_parts"] as? String)?.split(", ") ?: listOf(),
                 categories = levelsData,
@@ -111,8 +110,7 @@ fun DocumentSnapshot.toPlan(): Plan? {
                     weekData as? Map<String, Any>
                 }?.mapNotNull { weekData ->
                     if (weekData == null) null
-                    else WeekInfo(
-                        title = weekData["title"] as? String ?: "",
+                    else WeekInfo(title = weekData["title"] as? String ?: "",
                         description = weekData["description"] as? String ?: "",
                         days = (weekData["days"] as? Map<String, Any>)?.map { (_, dayData) ->
                             dayData as? Map<String, Any>
@@ -123,10 +121,8 @@ fun DocumentSnapshot.toPlan(): Plan? {
                                 description = dayData["description"] as? String ?: "",
                                 workout = (dayData["workouts"] as? List<String>) ?: listOf()
                             )
-                        } ?: listOf()
-                    )
-                } ?: listOf()
-            ),
+                        } ?: listOf())
+                } ?: listOf()),
         )
     } catch (e: Exception) {
         null

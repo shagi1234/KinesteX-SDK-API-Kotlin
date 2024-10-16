@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         initUiListeners()
 
         lifecycleScope.launch {
-            when (val result = KinesteXSDKAPI.getWorkoutsByCategory("Rehabilitation")) {
+            when (val result = KinesteXSDKAPI.getWorkoutByTitle("Posture Perfection")) {
                 is Resource.Success -> {
                     val gson = GsonBuilder().setPrettyPrinting().create()
                     val prettyJson = gson.toJson(result.data)
