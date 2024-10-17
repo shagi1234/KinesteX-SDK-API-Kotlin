@@ -3,16 +3,14 @@ package com.kinestex.kinestexsdkkotlin.secure_api.mapper
 import android.util.Log
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.gson.GsonBuilder
-import com.kinestex.kinestexsdkkotlin.secure_api.models.DayInfo
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Exercise
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Plan
-import com.kinestex.kinestexsdkkotlin.secure_api.models.TranslationsExercise
-import com.kinestex.kinestexsdkkotlin.secure_api.models.TranslationsPlan
-import com.kinestex.kinestexsdkkotlin.secure_api.models.TranslationsWorkout
-import com.kinestex.kinestexsdkkotlin.secure_api.models.WeekInfo
-import com.kinestex.kinestexsdkkotlin.secure_api.models.Workout
-import com.kinestex.kinestexsdkkotlin.secure_api.models.WorkoutExercise
+import com.kinestex.kinestexsdkkotlin.secure_api.models.*
 
+/**
+ * Extension function to convert a Firestore DocumentSnapshot to a Workout object.
+ * This function handles the mapping of various fields from the document to the Workout model.
+ *
+ * @return Workout object or null if conversion fails
+ */
 fun DocumentSnapshot.toWorkout(): Workout? {
     return try {
         val data = this.data ?: mapOf()
@@ -20,12 +18,12 @@ fun DocumentSnapshot.toWorkout(): Workout? {
         val prettyJson = gson.toJson(data)
         Log.d("DocumentSnapshot.toWorkout", "JSON data: $prettyJson")
 
-        Workout(id = id,
+        Workout(
+            id = id,
             imgURL = getString("body_img") ?: getString("imgURL") ?: "",
             category = getString("category") ?: "",
             total_minutes = getLong("total_minutes")?.toInt() ?: 0,
-            total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt()
-            ?: 0,
+            total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt() ?: 0,
             sequence = (get("sequence") as? List<Map<String, Any>>)?.map { exercise ->
                 WorkoutExercise(
                     title = exercise["title"] as? String ?: "",
@@ -65,6 +63,12 @@ fun DocumentSnapshot.toWorkout(): Workout? {
     }
 }
 
+/**
+ * Extension function to convert a Firestore DocumentSnapshot to an Exercise object.
+ * This function maps the document fields to the Exercise model, including translations.
+ *
+ * @return Exercise object
+ */
 fun DocumentSnapshot.toExercise(): Exercise {
     val data = this.data ?: mapOf()
     val gson = GsonBuilder().setPrettyPrinting().create()
@@ -92,6 +96,12 @@ fun DocumentSnapshot.toExercise(): Exercise {
     )
 }
 
+/**
+ * Extension function to convert a Firestore DocumentSnapshot to a Plan object.
+ * This function handles the complex nested structure of the Plan model, including weeks and days.
+ *
+ * @return Plan object or null if conversion fails
+ */
 fun DocumentSnapshot.toPlan(): Plan? {
     return try {
         val enData = get("en") as? Map<String, Any> ?: return null
@@ -102,7 +112,8 @@ fun DocumentSnapshot.toPlan(): Plan? {
             id = id,
             imgURL = getString("img_URL") ?: "",
             description = categoryData["description"] as? String ?: "",
-            en = TranslationsPlan(title = enData["title"] as? String ?: "",
+            en = TranslationsPlan(
+                title = enData["title"] as? String ?: "",
                 description = categoryData["description"] as? String ?: "",
                 body_parts = (enData["body_parts"] as? String)?.split(", ") ?: listOf(),
                 categories = levelsData,
@@ -110,7 +121,8 @@ fun DocumentSnapshot.toPlan(): Plan? {
                     weekData as? Map<String, Any>
                 }?.mapNotNull { weekData ->
                     if (weekData == null) null
-                    else WeekInfo(title = weekData["title"] as? String ?: "",
+                    else WeekInfo(
+                        title = weekData["title"] as? String ?: "",
                         description = weekData["description"] as? String ?: "",
                         days = (weekData["days"] as? Map<String, Any>)?.map { (_, dayData) ->
                             dayData as? Map<String, Any>
@@ -121,11 +133,12 @@ fun DocumentSnapshot.toPlan(): Plan? {
                                 description = dayData["description"] as? String ?: "",
                                 workout = (dayData["workouts"] as? List<String>) ?: listOf()
                             )
-                        } ?: listOf())
-                } ?: listOf()),
+                        } ?: listOf()
+                    )
+                } ?: listOf()
+            ),
         )
     } catch (e: Exception) {
         null
     }
 }
-
