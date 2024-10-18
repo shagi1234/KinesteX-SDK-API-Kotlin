@@ -24,39 +24,35 @@ fun DocumentSnapshot.toWorkout(): Workout? {
             category = getString("category") ?: "",
             total_minutes = getLong("total_minutes")?.toInt() ?: 0,
             total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt() ?: 0,
-            sequence = (get("sequence") as? List<Map<String, Any>>)?.map { exercise ->
-                WorkoutExercise(
-                    title = exercise["title"] as? String ?: "",
-                    id = exercise["id"] as? String ?: "",
-                    countdown = (exercise["countdown"] as? Long)?.toInt(),
-                    repeats = (exercise["repeats"] as? Long)?.toInt(),
-                    videoURL = exercise["video_URL"] as? String
-                )
+            sequence = (get("sequence") as? Map<String, Any>)?.let { sequenceMap ->
+                sequenceMap.entries.sortedBy { it.key }.mapNotNull { (_, exercise) ->
+                    (exercise as? Map<String, Any>)?.let { exerciseMap ->
+                        WorkoutExercise(
+                            title = exerciseMap["title"] as? String ?: "",
+                            id = "", // ID is not present in the exercise map, so we're leaving it empty
+                            countdown = (exerciseMap["countdown"] as? Number)?.toInt(),
+                            repeats = (exerciseMap["repeats"] as? Number)?.toInt(),
+                            videoURL = exerciseMap["video_URL"] as? String
+                        )
+                    }
+                }
             } ?: listOf(),
             en = TranslationsWorkout(
-                title = (get("en") as? Map<String, Any>)?.get("title") as? String
-                    ?: getString("title") ?: "",
+                title = (get("en") as? Map<String, Any>)?.get("title") as? String ?: getString("title") ?: "",
                 body_parts = ((get("en") as? Map<String, Any>)?.get("body_parts_array") as? List<String>)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
-                        "body_parts_array"
-                    ) as? List<String>
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
-                        "body_parts"
-                    ) as? List<String>
-                    ?: (((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
-                        "body_parts"
-                    ) as? String)?.split(",") ?: ((get("en") as? Map<String, Any>)?.get(
-                        "body_parts"
-                    ) as? String)?.split(",") ?: emptyList(),
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts_array") as? List<String>
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts") as? List<String>
+                    ?: (((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts") as? String)?.split(",")
+                    ?: ((get("en") as? Map<String, Any>)?.get("body_parts") as? String)?.split(",")
+                    ?: emptyList(),
                 description = ((get("en") as? Map<String, Any>)?.get("description") as? String)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
-                        "description"
-                    ) as? String ?: "",
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("description") as? String
+                    ?: "",
                 dif_level = ((get("en") as? Map<String, Any>)?.get("dif_level") as? String)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
-                        "dif_level"
-                    ) as? String ?: ""
-            ))
+                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("dif_level") as? String
+                    ?: ""
+            )
+        )
     } catch (e: Exception) {
         Log.e("WorkoutsRepository", "Error converting document to Workout", e)
         null
