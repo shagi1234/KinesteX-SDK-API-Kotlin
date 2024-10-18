@@ -4,6 +4,7 @@ import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -16,11 +17,13 @@ import android.view.WindowManager
 import android.webkit.WebView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.FirebaseApp
@@ -30,10 +33,12 @@ import com.kinestex.kinestexsdkkotlin.models.PlanCategory
 import com.kinestex.kinestexsdkkotlin.models.WebViewMessage
 import com.kinestex.kinestexsdkkotlin.secure_api.KinesteXSDKAPI
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
+import com.kinestex.kotlin_sdk.data.ContentType
 import com.kinestex.kotlin_sdk_secure_api.R
 import com.kinestex.kotlin_sdk_secure_api.databinding.ActivityMainBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -47,7 +52,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val iconSubOptions = mutableListOf<ImageView>()
     private var webView: WebView? = null
-
     private val apiKey = "API_KEY" // store this key securely
     private val company = "COMPANY_NAME"
     private val userId = "user1"
@@ -65,25 +69,6 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[ContentViewModel::class.java]
 
         initUiListeners()
-
-        lifecycleScope.launch {
-            when (val result = KinesteXSDKAPI.getWorkoutByTitle("Posture Perfection")) {
-                is Resource.Success -> {
-                    val gson = GsonBuilder().setPrettyPrinting().create()
-                    val prettyJson = gson.toJson(result.data)
-
-                    Log.e("SecureApis", "getPlansByCategory: $prettyJson")
-                }
-
-                is Resource.Loading -> {
-                    Log.e("SecureApis", "getPlansByCategory: Loading ...")
-                }
-
-                is Resource.Failure -> {
-                    Log.e("SecureApis", "getPlansByCategory: ${result.exception}")
-                }
-            }
-        }
 
         observe()
     }
@@ -181,6 +166,51 @@ class MainActivity : AppCompatActivity() {
                 showHowToVideo()
             }
 
+            radioGroup.setOnCheckedChangeListener { _, checkedId ->
+                Log.e("MainActivity", "setOnCheckedChangeListener: $checkedId")
+
+                when (checkedId) {
+                    R.id.radioExercise -> {
+                        // Handle Exercise selection
+                        viewModel.setContentType(ContentType.EXERCISE)
+                        Log.e("MainActivity", "setOnCheckedChangeListener: EXERCISE $checkedId")
+
+                    }
+                    R.id.radioWorkout -> {
+                        // Handle Workout selection
+                        viewModel.setContentType(ContentType.WORKOUT)
+                        Log.e("MainActivity", "setOnCheckedChangeListener: WORKOUT $checkedId")
+
+                    }
+                    R.id.radioPlan -> {
+                        // Handle Plan selection
+                        viewModel.setContentType(ContentType.PLAN)
+                        Log.e("MainActivity", "setOnCheckedChangeListener: PLAN $checkedId")
+
+                    }
+                }
+            }
+
+            edtSearch.doOnTextChanged { text, _, _, _ ->
+                if (!text.isNullOrEmpty()) {
+                    binding.edtSearch.error = null
+                }
+            }
+        }
+
+        binding.search.setOnClickListener {
+            val contentType = viewModel.contentType.value.name
+            val searchText = binding.edtSearch.text.toString()
+
+            if (searchText.isEmpty()) {
+                binding.edtSearch.error = "Field cannot be empty"
+                return@setOnClickListener
+            }
+
+            val intent = Intent(this, SearchContentActivity::class.java)
+            intent.putExtra("content_type", contentType)
+            intent.putExtra("search_text", searchText)
+            startActivity(intent)
         }
     }
 
@@ -377,6 +407,26 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             viewModel.reps.collect { reps -> tvReps?.let { updateTextView(it, "REPS: $reps") } }
+        }
+
+        lifecycleScope.launch {
+            viewModel.contentType.collect{
+                when(it){
+                    ContentType.EXERCISE -> {
+                        Log.e("MainActivity", "viewModel.contentType.collect: $it")
+
+                    }
+
+                    ContentType.WORKOUT -> {
+                        Log.e("MainActivity", "viewModel.contentType.collect: $it")
+
+                    }
+
+                    ContentType.PLAN -> {
+                        Log.e("MainActivity", "viewModel.contentType.collect: $it")
+                    }
+                }
+            }
         }
     }
 

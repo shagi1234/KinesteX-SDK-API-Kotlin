@@ -6,9 +6,11 @@ package com.kinestex.kotlin_sdk
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kinestex.kotlin_sdk.data.ContentType
 import com.kinestex.kotlin_sdk.data.IntegrationOptionType
 import com.kinestex.kotlin_sdk.data.IntegrationOption
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ContentViewModel : ViewModel() {
@@ -20,9 +22,11 @@ class ContentViewModel : ViewModel() {
     val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     var selectedOptionPosition: MutableStateFlow<Int> = MutableStateFlow(0)
+    var contentType: MutableStateFlow<ContentType> = MutableStateFlow(ContentType.EXERCISE)
 
     var selectedSubOption: Int = 0
     var integrateOptions: List<IntegrationOption> = generateOptions()
+
 
     private fun generateOptions(): List<IntegrationOption> {
         return IntegrationOptionType.entries.map { optionType ->
@@ -31,6 +35,12 @@ class ContentViewModel : ViewModel() {
                 optionType = optionType.category,
                 subOption = optionType.subOptions?.toMutableList()
             )
+        }
+    }
+
+    fun setContentType(contentTypeNew: ContentType) {
+        viewModelScope.launch {
+            contentType.emit(contentTypeNew)
         }
     }
 

@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
-<!--    <uses-feature-->
-<!--        android:name="android.hardware.camera"-->
-<!--        android:required="false" />-->
-
+    <!-- <uses-feature -->
+    <!-- android:name="android.hardware.camera" -->
+    <!-- android:required="false" /> -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name="com.kinestex.kotlin_sdk.app.App"
@@ -25,7 +23,9 @@
         android:theme="@style/Theme.KinesteXB2BKotlin.Fullscreen"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+        <activity
+            android:name="com.kinestex.kotlin_sdk.SearchContentActivity"
+            android:exported="false" />
         <activity
             android:name="com.kinestex.kotlin_sdk.MainActivity"
             android:exported="true">
@@ -35,9 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
-
-
 
 </manifest>
