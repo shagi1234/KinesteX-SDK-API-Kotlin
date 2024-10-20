@@ -3,8 +3,10 @@ package com.kinestex.kinestexsdkkotlin.secure_api.repository
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.toExercise
+import com.kinestex.kinestexsdkkotlin.secure_api.mapper.toWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Exercise
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
+import com.kinestex.kinestexsdkkotlin.secure_api.models.Workout
 import com.kinestex.kinestexsdkkotlin.secure_api.utils.ReferenceKeys
 import kotlinx.coroutines.tasks.await
 
@@ -23,13 +25,42 @@ class ExercisesRepository(db: FirebaseFirestore) {
      * @param name The name of the exercise to fetch
      * @return Resource<Exercise> representing the result of the operation
      */
+
     suspend fun getExerciseByName(name: String): Resource<Exercise> {
         return try {
-            val documentSnapshot = exercisesCollectionUpd.document(name).get().await()
-            if (documentSnapshot.exists()) {
-                Resource.Success(data = documentSnapshot.toExercise())
+            val documentSnapshot = exercisesCollectionUpd
+                .get()
+                .await()
+
+            println("Total documents retrieved: ${documentSnapshot.size()}")
+
+            val matchingDocuments = documentSnapshot.documents.filter { doc ->
+                val docTitle = doc.getString("name")
+                if (docTitle == null) {
+                    val enData =
+                        doc.reference.collection("translations").document("en").get().await()
+                    if (enData.exists()) {
+                        val titleEn = enData.getString("title")
+                        println("Direct titleEn: $titleEn")
+                        titleEn == name
+                    } else {
+                        println("enData does not exist")
+                        false
+                    }
+                } else {
+                    println("Direct title: $docTitle")
+                    docTitle == name
+                }
+            }
+
+            println("Matching documents: ${matchingDocuments.size}")
+
+            if (matchingDocuments.isNotEmpty()) {
+                val document = matchingDocuments.first()
+                val exercise = document.toExercise()
+                Resource.Success(data = exercise)
             } else {
-                Resource.Failure(exception = Exception("No exercise found with name: $name"))
+                Resource.Failure(exception = Exception("No workout found with title: $name"))
             }
         } catch (e: Exception) {
             Resource.Failure(exception = e)

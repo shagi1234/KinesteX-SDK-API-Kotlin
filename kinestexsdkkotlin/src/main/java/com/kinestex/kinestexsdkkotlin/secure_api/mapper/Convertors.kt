@@ -60,13 +60,13 @@ suspend fun DocumentSnapshot.toWorkout(): Workout? {
  *
  * @return Exercise object
  */
-fun DocumentSnapshot.toExercise(): Exercise {
+suspend fun DocumentSnapshot.toExercise(): Exercise {
     val data = this.data ?: mapOf()
     val gson = GsonBuilder().setPrettyPrinting().create()
     val prettyJson = gson.toJson(data)
     Log.d("DocumentSnapshot.toExercise", "JSON data: $prettyJson")
 
-    val enFields = data["en"] as? Map<String, Any> ?: mapOf()
+    val translationsDoc = reference.collection("translations").document("en").get().await()
 
     return Exercise(
         id = id,
@@ -74,15 +74,15 @@ fun DocumentSnapshot.toExercise(): Exercise {
         videoURL = data["video_URL"] as? String ?: "",
         avg_reps = (data["repeats"] as? Number)?.toInt(),
         avg_countdown = (data["correct_second"] as? Number)?.toInt(),
-        rest_duration = (enFields["rest_duration"] as? Number)?.toInt() ?: 0,
+        rest_duration = (translationsDoc["rest_duration"] as? Number)?.toInt() ?: 0,
         en = TranslationsExercise(
-            title = enFields["title"] as? String ?: "",
-            body_parts = enFields["body_parts"] as? List<String> ?: listOf(),
-            description = enFields["description"] as? String ?: "",
-            dif_level = enFields["dif_level"] as? String ?: "",
-            common_mistakes = enFields["common_mistakes"] as? String ?: "",
-            steps = enFields["steps"] as? List<String> ?: listOf(),
-            tips = enFields["tips"] as? String ?: ""
+            title = translationsDoc["title"] as? String ?: "",
+            body_parts = translationsDoc["body_parts"] as? List<String> ?: listOf(),
+            description = translationsDoc["description"] as? String ?: "",
+            dif_level = translationsDoc["dif_level"] as? String ?: "",
+            common_mistakes = translationsDoc["common_mistakes"] as? String ?: "",
+            steps = translationsDoc["steps"] as? List<String> ?: listOf(),
+            tips = translationsDoc["tips"] as? String ?: ""
         ),
     )
 }
