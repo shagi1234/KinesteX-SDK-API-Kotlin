@@ -74,7 +74,8 @@ class SearchContentActivity : AppCompatActivity() {
     private fun fetchWorkout() {
         lifecycleScope.launch {
             searchText?.let {title ->
-                when (val result = KinesteXSDKAPI.getWorkoutByTitle(title)) {
+
+                when (val result = KinesteXSDKAPI.getWorkoutById("6a5biKHCSVdXtzornrLI")) {
                     is Resource.Success -> {
                         val prettyJson = GsonBuilder().setPrettyPrinting().create().toJson(result.data)
                         binding.content.text = prettyJson

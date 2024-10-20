@@ -15,8 +15,6 @@ import kotlinx.coroutines.tasks.await
  */
 class ExercisesRepository(db: FirebaseFirestore) {
     // Reference to the main exercises collection
-    private val exercisesCollection = db.collection(ReferenceKeys.EXERCISES_COLLECTION)
-    // Reference to the updated exercises collection
     private val exercisesCollectionUpd = db.collection(ReferenceKeys.EXERCISES_COLLECTION_UPD)
 
     /**
@@ -27,7 +25,7 @@ class ExercisesRepository(db: FirebaseFirestore) {
      */
     suspend fun getExerciseByName(name: String): Resource<Exercise> {
         return try {
-            val documentSnapshot = exercisesCollection.document(name).get().await()
+            val documentSnapshot = exercisesCollectionUpd.document(name).get().await()
             if (documentSnapshot.exists()) {
                 Resource.Success(data = documentSnapshot.toExercise())
             } else {

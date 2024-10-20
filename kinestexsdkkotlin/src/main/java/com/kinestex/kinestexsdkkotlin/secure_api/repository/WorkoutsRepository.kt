@@ -1,5 +1,6 @@
 package com.kinestex.kinestexsdkkotlin.secure_api.repository
 
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kinestex.kinestexsdkkotlin.secure_api.mapper.toWorkout
 import com.kinestex.kinestexsdkkotlin.secure_api.models.Resource
@@ -14,8 +15,6 @@ import kotlinx.coroutines.tasks.await
  */
 class WorkoutsRepository(db: FirebaseFirestore) {
     // Reference to the main workouts collection
-    private val workoutsCollection = db.collection(ReferenceKeys.WORKOUTS_COLLECTION)
-    // Reference to the updated workouts collection
     private val workoutsCollectionUpd = db.collection(ReferenceKeys.WORKOUTS_COLLECTION_UPD)
 
     /**
@@ -26,17 +25,48 @@ class WorkoutsRepository(db: FirebaseFirestore) {
      */
     suspend fun getWorkoutByTitle(title: String): Resource<Workout> {
         return try {
-            val querySnapshot = workoutsCollection.document(title).get().await()
-            if (querySnapshot.exists()) {
-                Resource.Success(data = querySnapshot.toWorkout())
+            val querySnapshot = workoutsCollectionUpd
+                .get()
+                .await()
+
+            println("Total documents retrieved: ${querySnapshot.size()}")
+
+            val matchingDocuments = querySnapshot.documents.filter { doc ->
+                val docTitle = doc.getString("title")
+                if (docTitle == null) {
+                    val enData = doc.reference.collection("translations").document("en").get().await()
+                    if (enData.exists()) {
+                        val titleEn = enData.getString("title")
+                        println("Direct titleEn: $titleEn")
+                        titleEn == title
+                    } else {
+                        println("enData does not exist")
+                        false
+                    }
+                } else {
+                    println("Direct title: $docTitle")
+                    docTitle == title
+                }
+            }
+
+            println("Matching documents: ${matchingDocuments.size}")
+
+            if (matchingDocuments.isNotEmpty()) {
+                val document = matchingDocuments.first()
+                val workout = document.toWorkout()
+                if (workout != null) {
+                    Resource.Success(data = workout)
+                } else {
+                    Resource.Failure(exception = Exception("Failed to parse workout data"))
+                }
             } else {
                 Resource.Failure(exception = Exception("No workout found with title: $title"))
             }
         } catch (e: Exception) {
+            println("Error: ${e.message}")
             Resource.Failure(exception = e)
         }
     }
-
     /**
      * Fetches a workout by its ID from the updated workouts collection, specifically the English translation.
      *
@@ -46,10 +76,9 @@ class WorkoutsRepository(db: FirebaseFirestore) {
     suspend fun getWorkoutByID(id: String): Resource<Workout> {
         return try {
             val documentSnapshot = workoutsCollectionUpd.document(id)
-                .collection("translations")
-                .document("en")
                 .get()
                 .await()
+
             if (documentSnapshot.exists()) {
                 Resource.Success(data = documentSnapshot.toWorkout())
             } else {

@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.gson.GsonBuilder
 import com.kinestex.kinestexsdkkotlin.secure_api.models.*
+import kotlinx.coroutines.tasks.await
 
 /**
  * Extension function to convert a Firestore DocumentSnapshot to a Workout object.
@@ -11,46 +12,40 @@ import com.kinestex.kinestexsdkkotlin.secure_api.models.*
  *
  * @return Workout object or null if conversion fails
  */
-fun DocumentSnapshot.toWorkout(): Workout? {
+suspend fun DocumentSnapshot.toWorkout(): Workout? {
     return try {
         val data = this.data ?: mapOf()
         val gson = GsonBuilder().setPrettyPrinting().create()
         val prettyJson = gson.toJson(data)
         Log.d("DocumentSnapshot.toWorkout", "JSON data: $prettyJson")
 
+        val translationsDoc = reference.collection("translations").document("en").get().await()
+
         Workout(
             id = id,
             imgURL = getString("body_img") ?: getString("imgURL") ?: "",
             category = getString("category") ?: "",
             total_minutes = getLong("total_minutes")?.toInt() ?: 0,
-            total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt() ?: 0,
-            sequence = (get("sequence") as? Map<String, Any>)?.let { sequenceMap ->
-                sequenceMap.entries.sortedBy { it.key }.mapNotNull { (_, exercise) ->
-                    (exercise as? Map<String, Any>)?.let { exerciseMap ->
-                        WorkoutExercise(
-                            title = exerciseMap["title"] as? String ?: "",
-                            id = "", // ID is not present in the exercise map, so we're leaving it empty
-                            countdown = (exerciseMap["countdown"] as? Number)?.toInt(),
-                            repeats = (exerciseMap["repeats"] as? Number)?.toInt(),
-                            videoURL = exerciseMap["video_URL"] as? String
-                        )
-                    }
-                }
+            total_calories = getLong("calories")?.toInt() ?: getLong("total_calories")?.toInt()
+            ?: 0,
+            sequence = (get("sequence") as? List<Map<String, Any>>)?.mapNotNull { exerciseMap ->
+                WorkoutExercise(
+                    title = exerciseMap["title"] as? String ?: "",
+                    id = exerciseMap["id"] as? String ?: "",
+                    countdown = (exerciseMap["countdown"] as? Number)?.toInt(),
+                    repeats = (exerciseMap["repeats"] as? Number)?.toInt(),
+                    videoURL = exerciseMap["video_URL"] as? String
+                )
             } ?: listOf(),
             en = TranslationsWorkout(
-                title = (get("en") as? Map<String, Any>)?.get("title") as? String ?: getString("title") ?: "",
-                body_parts = ((get("en") as? Map<String, Any>)?.get("body_parts_array") as? List<String>)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts_array") as? List<String>
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts") as? List<String>
-                    ?: (((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("body_parts") as? String)?.split(",")
-                    ?: ((get("en") as? Map<String, Any>)?.get("body_parts") as? String)?.split(",")
+                title = translationsDoc.getString("title") ?: getString("title") ?: "",
+                body_parts = ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get(
+                    "body_parts"
+                ) as? List<String>
+                    ?: translationsDoc.get("body_parts") as? List<String>
                     ?: emptyList(),
-                description = ((get("en") as? Map<String, Any>)?.get("description") as? String)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("description") as? String
-                    ?: "",
-                dif_level = ((get("en") as? Map<String, Any>)?.get("dif_level") as? String)
-                    ?: ((get("filter_fields") as? Map<String, Any>)?.get("en") as? Map<String, Any>)?.get("dif_level") as? String
-                    ?: ""
+                description = translationsDoc.getString("description") ?: "",
+                dif_level = translationsDoc.getString("dif_level") ?: ""
             )
         )
     } catch (e: Exception) {
@@ -103,6 +98,11 @@ fun DocumentSnapshot.toPlan(): Plan? {
         val enData = get("en") as? Map<String, Any> ?: return null
         val categoryData = enData["category"] as? Map<String, Any> ?: return null
         val levelsData = categoryData["levels"] as? Map<String, Long> ?: return null
+
+        val data = this.data ?: mapOf()
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val prettyJson = gson.toJson(data)
+        Log.d("DocumentSnapshot.toPlan", "JSON data: $prettyJson")
 
         Plan(
             id = id,
