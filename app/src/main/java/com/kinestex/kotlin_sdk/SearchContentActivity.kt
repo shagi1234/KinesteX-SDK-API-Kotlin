@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 class SearchContentActivity : AppCompatActivity() {
     private var contentType: String? = null
     private var searchText: String? = null
+    private var searchType: String? = null
     private lateinit var binding: ActivitySearchContentBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +26,7 @@ class SearchContentActivity : AppCompatActivity() {
         // Retrieve the passed arguments from the intent
         contentType = intent.getStringExtra("content_type")
         searchText = intent.getStringExtra("search_text")
+        searchType = intent.getStringExtra("search_type")
 
         Log.d("SearchContentActivity", "Content Type: $contentType, Search Text: $searchText")
 
@@ -53,15 +55,23 @@ class SearchContentActivity : AppCompatActivity() {
 
     private fun fetchPlan() {
         lifecycleScope.launch {
-            searchText?.let {title ->
-                when (val result = KinesteXSDKAPI.getPlanByTitle(title)) {
+            searchText?.let { title ->
+                val result =
+                    if (searchType == "id") KinesteXSDKAPI.getPlanById(title) else KinesteXSDKAPI.getPlanByTitle(
+                        title
+                    )
+
+                when (result) {
                     is Resource.Success -> {
-                        val prettyJson = GsonBuilder().setPrettyPrinting().create().toJson(result.data)
+                        val prettyJson =
+                            GsonBuilder().setPrettyPrinting().create().toJson(result.data)
                         binding.content.text = prettyJson
                     }
+
                     is Resource.Loading -> {
                         binding.content.text = "Loading ..."
                     }
+
                     is Resource.Failure -> {
                         binding.content.text = result.exception.toString()
                     }
@@ -73,15 +83,23 @@ class SearchContentActivity : AppCompatActivity() {
 
     private fun fetchWorkout() {
         lifecycleScope.launch {
-            searchText?.let {title ->
-                when (val result = KinesteXSDKAPI.getWorkoutByTitle(title)) {
+            searchText?.let { title ->
+                val result =
+                    if (searchType == "id") KinesteXSDKAPI.getWorkoutById(title) else KinesteXSDKAPI.getWorkoutByTitle(
+                        title
+                    )
+
+                when (result) {
                     is Resource.Success -> {
-                        val prettyJson = GsonBuilder().setPrettyPrinting().create().toJson(result.data)
+                        val prettyJson =
+                            GsonBuilder().setPrettyPrinting().create().toJson(result.data)
                         binding.content.text = prettyJson
                     }
+
                     is Resource.Loading -> {
                         binding.content.text = "Loading ..."
                     }
+
                     is Resource.Failure -> {
                         binding.content.text = result.exception.toString()
                     }
@@ -93,21 +111,27 @@ class SearchContentActivity : AppCompatActivity() {
 
     private fun fetchExercise() {
         lifecycleScope.launch {
-            searchText?.let {title ->
-                when (val result = KinesteXSDKAPI.getExerciseByTitle(title)) {
+            searchText?.let { title ->
+                val result =
+                    if (searchType == "id") KinesteXSDKAPI.getExerciseById(title) else KinesteXSDKAPI.getExerciseByTitle(
+                        title
+                    )
+                when (result) {
                     is Resource.Success -> {
-                        val prettyJson = GsonBuilder().setPrettyPrinting().create().toJson(result.data)
+                        val prettyJson =
+                            GsonBuilder().setPrettyPrinting().create().toJson(result.data)
                         binding.content.text = prettyJson
                     }
+
                     is Resource.Loading -> {
                         binding.content.text = "Loading ..."
                     }
+
                     is Resource.Failure -> {
                         binding.content.text = result.exception.toString()
                     }
                 }
             }
-
         }
     }
 }

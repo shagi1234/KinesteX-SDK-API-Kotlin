@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity() {
     private val apiKey = "API_KEY" // store this key securely
     private val company = "COMPANY_NAME"
     private val userId = "user1"
+    private var isIdSelected = false
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -191,6 +192,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            radioGroupIdOrTitle.setOnCheckedChangeListener { _, checkedId ->
+                when (checkedId) {
+                    R.id.radioId -> {
+                        isIdSelected = true
+                    }
+                    R.id.radioTitle -> {
+                        isIdSelected = false
+                    }
+                }
+            }
+
             edtSearch.doOnTextChanged { text, _, _, _ ->
                 if (!text.isNullOrEmpty()) {
                     binding.edtSearch.error = null
@@ -210,6 +222,7 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SearchContentActivity::class.java)
             intent.putExtra("content_type", contentType)
             intent.putExtra("search_text", searchText)
+            intent.putExtra("search_type", if (isIdSelected) "id" else "title")
             startActivity(intent)
         }
     }

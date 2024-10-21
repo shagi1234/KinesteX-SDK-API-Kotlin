@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="16dp"
-            android:hint="Search title here">
+            android:hint="Search here">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edt_search"
@@ -27,6 +27,32 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <RadioGroup
+            android:id="@+id/radioGroupIdOrTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioId"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="By Id"
+                android:textColor="@color/white" />
+
+            <RadioButton
+                android:id="@+id/radioTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="By Title"
+                android:textColor="@color/white" />
+
+        </RadioGroup>
 
         <RadioGroup
             android:id="@+id/radioGroup"
@@ -40,6 +66,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:checked="true"
                 android:text="Exercise"
                 android:textColor="@color/white" />
 
