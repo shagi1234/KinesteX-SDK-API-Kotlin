@@ -25,34 +25,24 @@ class WorkoutsRepository(db: FirebaseFirestore) {
      */
     suspend fun getWorkoutByTitle(title: String): Resource<Workout> {
         return try {
-            val querySnapshot = workoutsCollectionUpd
+            // First, query for workouts with a direct title match
+            var querySnapshot = workoutsCollectionUpd
+                .whereEqualTo("title", title)
                 .get()
                 .await()
 
-            println("Total documents retrieved: ${querySnapshot.size()}")
-
-            val matchingDocuments = querySnapshot.documents.filter { doc ->
-                val docTitle = doc.getString("title")
-                if (docTitle == null) {
-                    val enData = doc.reference.collection("translations").document("en").get().await()
-                    if (enData.exists()) {
-                        val titleEn = enData.getString("title")
-                        println("Direct titleEn: $titleEn")
-                        titleEn == title
-                    } else {
-                        println("enData does not exist")
-                        false
-                    }
-                } else {
-                    println("Direct title: $docTitle")
-                    docTitle == title
-                }
+            if (querySnapshot.documents.isEmpty()) {
+                // If no direct match, query for workouts with matching English translation title
+                querySnapshot = workoutsCollectionUpd
+                    .whereEqualTo("translations.en.title", title)
+                    .get()
+                    .await()
             }
 
-            println("Matching documents: ${matchingDocuments.size}")
+            println("Total documents retrieved: ${querySnapshot.size()}")
 
-            if (matchingDocuments.isNotEmpty()) {
-                val document = matchingDocuments.first()
+            if (querySnapshot.documents.isNotEmpty()) {
+                val document = querySnapshot.documents.first()
                 val workout = document.toWorkout()
                 if (workout != null) {
                     Resource.Success(data = workout)

@@ -28,39 +28,29 @@ class ExercisesRepository(db: FirebaseFirestore) {
 
     suspend fun getExerciseByName(name: String): Resource<Exercise> {
         return try {
-            val documentSnapshot = exercisesCollectionUpd
+            val querySnapshot = exercisesCollectionUpd
+                .whereEqualTo("name", name)
                 .get()
                 .await()
 
-            println("Total documents retrieved: ${documentSnapshot.size()}")
-
-            val matchingDocuments = documentSnapshot.documents.filter { doc ->
-                val docTitle = doc.getString("name")
-                if (docTitle == null) {
-                    val enData =
-                        doc.reference.collection("translations").document("en").get().await()
-                    if (enData.exists()) {
-                        val titleEn = enData.getString("title")
-                        println("Direct titleEn: $titleEn")
-                        titleEn == name
-                    } else {
-                        println("enData does not exist")
-                        false
-                    }
-                } else {
-                    println("Direct title: $docTitle")
-                    docTitle == name
-                }
-            }
-
-            println("Matching documents: ${matchingDocuments.size}")
-
-            if (matchingDocuments.isNotEmpty()) {
-                val document = matchingDocuments.first()
+            if (querySnapshot.documents.isNotEmpty()) {
+                val document = querySnapshot.documents.first()
                 val exercise = document.toExercise()
                 Resource.Success(data = exercise)
             } else {
-                Resource.Failure(exception = Exception("No workout found with title: $name"))
+                // If not found by direct name, check translations
+                val translationQuery = exercisesCollectionUpd
+                    .whereEqualTo("translations.en.title", name)
+                    .get()
+                    .await()
+
+                if (translationQuery.documents.isNotEmpty()) {
+                    val document = translationQuery.documents.first()
+                    val exercise = document.toExercise()
+                    Resource.Success(data = exercise)
+                } else {
+                    Resource.Failure(exception = Exception("No workout found with title: $name"))
+                }
             }
         } catch (e: Exception) {
             Resource.Failure(exception = e)
