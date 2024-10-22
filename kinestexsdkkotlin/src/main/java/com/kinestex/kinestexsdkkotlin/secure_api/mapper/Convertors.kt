@@ -73,7 +73,7 @@ suspend fun DocumentSnapshot.toExercise(): Exercise {
         thumbnailURL = data["thumbnail_URL"] as? String ?: "",
         videoURL = data["video_URL"] as? String ?: "",
         avg_reps = (data["repeats"] as? Number)?.toInt(),
-        avg_countdown = (data["correct_second"] as? Number)?.toInt(),
+        avg_countdown = (data["countdown"] as? Number)?.toInt(),
         rest_duration = (translationsDoc["rest_duration"] as? Number)?.toInt() ?: 0,
         en = TranslationsExercise(
             title = translationsDoc["title"] as? String ?: "",
